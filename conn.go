@@ -14,7 +14,10 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
+
+const DefaultDeadline = 10 * time.Second
 
 var ErrClosedConn = errors.New("zmq4: read/write on closed connection")
 
@@ -132,7 +135,7 @@ func (conn *Conn) greet(server bool) error {
 		return errSecMech
 	}
 	copy(send.Mechanism[:], kind)
-
+	conn.rw.SetDeadline(time.Now().Add(DefaultDeadline)) // 默认10s超时
 	err = send.write(conn.rw)
 	if err != nil {
 		conn.checkIO(err)
